@@ -1130,15 +1130,40 @@ VAR
   TotLoad: LongInt;
 BEGIN
   Assign(StrPointerFile,General.TextPath+'RGLNGPR.DAT');
+  FileMode := 0;
   Reset(StrPointerFile);
   Seek(StrPointerFile,StrNum);
   Read(StrPointerFile,StrPointer);
   Close(StrPointerFile);
   LastError := IOResult;
+
+  IF (LastError <> 0) THEN
+  BEGIN
+    WriteLn(^G^G^G'Error ', LastError, ' when opening ', General.TextPath,'RGLNGPR.DAT');
+    Halt(255);
+  END;
+
   TotLoad := 0;
   Assign(RGStrFile,General.TextPath+'RGLNGTX.DAT');
+  FileMode := 0;
   Reset(RGStrFile,1);
+  LastError := IOResult;
+
+  IF (LastError <> 0) THEN
+  BEGIN
+    WriteLn(^G^G^G'Error ', LastError, ' when opening ', General.TextPath,'RGLNGTX.DAT');
+    Halt(255);
+  END;
+
+  IF ((StrPointer.Pointer - 1) > FileSize(RGStrFile)) THEN
+  BEGIN
+     WriteLn;
+     WriteLn(^G^G^G'Possibly corrupt language file.  Aborting');
+     Halt(255);
+  END;
+
   Seek(RGStrFile,(StrPointer.Pointer - 1));
+
   REPEAT
     BlockRead(RGStrFile,S[0],1);
     BlockRead(RGStrFile,S[1],Ord(S[0]));
