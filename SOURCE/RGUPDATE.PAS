@@ -521,7 +521,7 @@ BEGIN
     NetMailPath := OldGeneral.NetMailPath;
     BBSName := OldGeneral.BBSName;
     SysOpName := OldGeneral.SysOpName;
-    Version := OldGeneral.Version; {LeeW: Update this!}
+    Version := Build; {LeeW: Update this!}
     BBSPhone := OldGeneral.BBSPhone;
     LastDate := OldGeneral.LastDate;
     PacketName := OldGeneral.PacketName;
