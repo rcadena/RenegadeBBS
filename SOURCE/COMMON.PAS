@@ -308,7 +308,7 @@ CONST
   PackBasesOnly: Boolean = FALSE;         { Are we packing message bases only? }
   PackUsersOnly: Boolean = FALSE;         { Are we packing users only? -- LeeW: Added }
   SortFilesOnly: Boolean = FALSE;         { Are we sorting file bases only? }
-  FileBBSOnly: Boolean = FALSE;           { Are we verifying FILES.BBS only? }
+  {FileBBSOnly: Boolean = FALSE; }          { Are we verifying FILES.BBS only? }
   {}
   RoomNumber: Integer = 0;                { Room OF teleconference }
   NewMenuToLoad: Boolean = FALSE;         { menu command returns TRUE IF new menu TO load }

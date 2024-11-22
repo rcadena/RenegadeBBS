@@ -69,6 +69,14 @@ USES
 {$O SysOp7M  } {$O SysOp8   } {$O SysOp9   } {$O SysOp10  } {$O SysOp11   } {$O SysOp12  } {$O TimeBank } {$O TimeFunc }
 {$O Vote     } {$O WFCMenu  }
 
+TYPE
+  CommandLineParamsRec = RECORD
+    FileBBS: Boolean;
+    SortFiles: Boolean;
+    PackBases: Boolean;
+  END;
+
+
 CONST
   NeedToHangUp: Boolean = FALSE;
   OvrMaxSize=65536;
@@ -156,7 +164,20 @@ BEGIN
     END;
 END;
 
-PROCEDURE ReadP;
+{**
+ Set default values for command line args
+**}
+PROCEDURE SetDefaultArgs(var Args: CommandLineParamsRec);
+BEGIN
+  Args.FileBBS   := FALSE;
+  Args.SortFiles := FALSE;
+  Args.PackBases := FALSE;
+END;
+
+{**
+* Read command line params and populate Args
+**}
+PROCEDURE ReadP(var Args: CommandLineParamsRec);
 VAR
   d: astr;
   Counter: Integer;
@@ -215,7 +236,7 @@ BEGIN
                 END;
               END;
         'F' : BEGIN
-                FileBBSOnly := TRUE;
+                Args.FileBBS := TRUE;
                 LocalIOOnly := TRUE;
               END;
         'H' : SockHandle := Copy(ParamStr(Counter),3,255);
@@ -238,7 +259,7 @@ BEGIN
               END;
         'N' : ThisNode := StrToInt(Copy(ParamStr(Counter),3,255));
         'P' : BEGIN
-                PackBasesOnly := TRUE;
+                Args.PackBases := TRUE;
                 LocalIOOnly := TRUE;
               END;
         'Q' : QuitAfterDone := TRUE;
@@ -247,7 +268,8 @@ BEGIN
                HALT;
               END;
         'S' : BEGIN
-                SortFilesOnly := TRUE;
+                Args.SortFiles := TRUE;
+                SortFilesOnly := TRUE; { THIS IS USED ELSEWHERE }
                 LocalIOOnly := TRUE;
               END;
         'T' : BEGIN
@@ -349,6 +371,8 @@ BEGIN
   END;
 END;
 
+VAR
+  Args: CommandLineParamsRec;
 BEGIN
   ClrScr;
   TextColor(LightGray);
@@ -376,7 +400,10 @@ BEGIN
 
   InitRGOVR;
   ReadDAT;
-  ReadP; { Read command-line parameters }
+
+  SetDefaultArgs(Args);
+  ReadP(Args); { Read command-line parameters }
+
   LoadOvrEMS;
 
   Init;
@@ -387,7 +414,7 @@ BEGIN
   IF (ScreenSize > 8000) THEN
     ScreenSize := 8000;
 
-  IF (FileBBSOnly) OR (PackBasesOnly) OR (SortFilesOnly) OR (MakeQWKFor > 0) OR (UpQWKFor > 0) THEN
+  IF (Args.FileBBS) OR (Args.PackBases) OR (Args.SortFiles) OR (MakeQWKFor > 0) OR (UpQWKFor > 0) THEN
     BEGIN
       WFCMDefine;
       TempPause := FALSE;
@@ -406,11 +433,11 @@ BEGIN
           Uploadpacket(TRUE);
           SaveURec(ThisUser,UpQWKFor);
         END;
-      IF (PackBasesOnly) THEN
+      IF (Args.PackBases) THEN
         DoShowPackMessageAreas;
-      IF (SortFilesOnly) THEN
+      IF (Args.SortFiles) THEN
         Sort;
-      IF (FileBBSOnly) THEN
+      IF (Args.FileBBS) THEN
         CheckFilesBBS;
       Halt(0);
     END;
