@@ -83,7 +83,7 @@ VAR
   Counter1: Integer;
 
 Procedure OvrInitXMS; External;
-{$L OVERXMS.OBJ }
+{$L OVERXMS.OBJ}
 
 
 PROCEDURE ErrorHandle;
@@ -95,12 +95,19 @@ BEGIN
   IF (ErrorAddr <> NIL) THEN
     BEGIN
       CHDir(StartDir);
+
       IF (General.Multinode) AND (ThisNode > 0) THEN
-        Assign(SysOpLogFile,TempDir+'TEMPLOG.'+IntToStr(ThisNode) )
+        Assign(SysOpLogFile,TempDir+'TEMPLOG.'+IntToStr(ThisNode))
       ELSE
         Assign(SysOpLogFile,General.LogsPath+'SYSOP.LOG');
+
+
       Append(SysOpLogFile);
+
+      Writeln('Past append');
       S := '^8*>>^8 Runtime error '+IntToStr(ExitCode)+' at '+DateStr+' '+TimeStr+ '^8 <<*^1'+' (Check ERROR.LOG)';
+
+
       WriteLn(SysOpLogFile,S);
       Flush(SysOpLogFile);
       Close(SysOpLogFile);
@@ -120,7 +127,8 @@ BEGIN
       WriteLn(TextFile,'อออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออ');
       WriteLn(TextFile);
       WriteLn(TextFile);
-      WriteLn(TextFile,'ฏ>ฏ error #'+IntToStr(ExitCode)+' at '+DateStr+' '+TimeStr+' version: '+General.Version);
+      {WriteLn(TextFile,'ฏ>ฏ error #'+IntToStr(ExitCode)+' at '+DateStr+' '+TimeStr+' version: '+General.Version);
+      }
       IF (UserOn) THEN
         BEGIN
           Write(TextFile,'ฏ>ฏ User "'+AllCaps(ThisUser.name)+' #'+IntToStr(UserNum)+'" was on ');
@@ -143,6 +151,7 @@ BEGIN
       Com_Flush_Send;
       DTR(FALSE);
       Com_DeInstall;
+      Writeln('All done, halting');
       Halt(ExitErrors);
     END;
 END;
@@ -256,6 +265,90 @@ BEGIN
   AllowAbort := TRUE;
 END;
 
+PROCEDURE InitRGOVR;
+BEGIN
+ Write(' - Initializing RENEGADE.OVR ... ');
+  OvrFileMode := 0; { Read only }
+  OvrInit('RENEGADE.OVR');
+  IF (OvrResult <> OvrOK) THEN
+    BEGIN
+      CASE OvrResult OF
+        OvrError    : WriteLn('[ERROR] Overlay manager error');
+        OvrNotFound : WriteLn('[ERROR] Overlay file not found');
+      END;
+      Halt;
+    END
+  ELSE
+    BEGIN
+      WriteLn('Done!'); { Initialized overlays }
+    END
+
+END;
+
+{**
+Reads the RENEGADE.DAT file.
+
+If the file size is smaller than the General record
+it then pads the file so that the full record can be
+read.
+**}
+PROCEDURE ReadDAT;
+VAR
+  FillByte: Byte;  {* Fill byte if file is too small *}
+BEGIN
+  FillByte := 0;
+  Write(' - Initializing RENEGADE.DAT ... ');
+
+  Assign(ByteFile,DATFilePath+'RENEGADE.DAT');
+  Reset(ByteFile);
+  LastError := IOResult;
+  IF (LastError <> 0) THEN
+    BEGIN
+      WriteLn('[ERROR] '+ErrorCodeHelp(LastError));
+      Halt;
+    END;
+
+  {* Seek to the end of the file and then pad if < General size *}
+  Seek(ByteFile,FileSize(ByteFile));
+  WHILE FileSize(ByteFile) < SizeOf(General) DO BEGIN
+    Write(ByteFile,FillByte);
+  END;
+
+  Close(ByteFile);
+
+  Assign(GeneralF,DATFilePath+'RENEGADE.DAT');
+  Reset(GeneralF);
+  Read(GeneralF,General);
+  Close(GeneralF);
+  Writeln('Done!');
+END;
+
+PROCEDURE LoadOvrEMS;
+BEGIN
+  IF (General.UseEMS) AND (OvrUseEMS) THEN
+     BEGIN
+     Write(' - Attempting to load overlays ('+FormatNumber(OvrGetBuf)+' Bytes) into EMS memory ... ');
+     OvrInitEMS;
+     ovrsetbuf(ovrmaxsize);
+     ovrsetretry(ovrmaxsize div 3);
+
+     IF (OvrResult = OvrOK) THEN
+     BEGIN
+          WriteLn('Done!');
+          OverLayLocation := 1; { EMS }
+     END ELSE BEGIN { Failed to load overlays to EMS }
+         WriteLn;
+         CASE OvrResult OF
+         OvrNoMemory    : WriteLn('[ERROR] Not enough memory for overlay buffer');
+         OvrIOError     : WriteLn('[ERROR] Overlay file I/O error');
+         OvrNoEMSDriver : WriteLn('[ERROR] EMS driver not installed');
+         OvrNoEMSMemory : WriteLn('[ERROR] Not enough EMS memory');
+         END;
+         OverLayLocation := 0; { Disk }
+     END;
+  END;
+END;
+
 BEGIN
   ClrScr;
   TextColor(LightGray);
@@ -266,7 +359,7 @@ BEGIN
   WriteLn(' ------------------- |___/ ---------------');
   WriteLn(' B U L L E T I N   B O A R D   S Y S T E M');
   WriteLn(' -----------------------------------------');
-
+  WriteLn(' VERSION: ' + Ver);
   GetIntVec($14,Interrupt14);
   FileMode := 66;
   ExitSave := ExitProc;
@@ -281,73 +374,10 @@ BEGIN
   IF (DATFilePath <> '') THEN
     DATFilePath := BSlash(DATFilePath,TRUE);
 
-  Write(' - Initializing RENEGADE.DAT ... ');
-  Assign(ByteFile,DATFilePath+'RENEGADE.DAT');
-  Reset(ByteFile);
-  LastError := IOResult;
-  IF (LastError <> 0) THEN
-    BEGIN
-      WriteLn('[ERROR] '+ErrorCodeHelp(LastError));
-      Halt;
-    END
-  ELSE
-    BEGIN
-      WriteLn('Done!');
-    END;
-  Counter := 0;
-  Seek(ByteFile,FileSize(ByteFile));
-  WHILE FileSize(ByteFile) < SizeOf(General) DO
-    Write(ByteFile,Counter);
-  Close(ByteFile);
-
-  Assign(GeneralF,DATFilePath+'RENEGADE.DAT');
-  Reset(GeneralF);
-  Read(GeneralF,General);
-  Close(GeneralF);
-
+  InitRGOVR;
+  ReadDAT;
   ReadP; { Read command-line parameters }
-
-  Write(' - Initializing RENEGADE.OVR ... ');
-  OvrFileMode := 0; { Read only }
-  OvrInit('RENEGADE.OVR');
-  IF (OvrResult <> OvrOK) THEN
-    BEGIN
-      CASE OvrResult OF
-        OvrError    : WriteLn('[ERROR] Overlay manager error');
-        OvrNotFound : WriteLn('[ERROR] Overlay file not found');
-      END;
-      Halt;
-    END
-  ELSE
-    BEGIN
-      WriteLn('Done!'); { Initialized overlays }
-      IF (General.UseEMS) AND (OvrUseEMS) THEN
-        BEGIN
-          Write(' - Attempting to load overlays ('+FormatNumber(OvrGetBuf)+' Bytes) into EMS memory ... ');
-          OvrInitEMS;
-  ovrsetbuf(ovrmaxsize);
-  ovrsetretry(ovrmaxsize div 3);
-
-          IF (OvrResult = OvrOK) THEN
-            BEGIN
-              WriteLn('Done!');
-              OverLayLocation := 1; { EMS }
-            END
-          ELSE
-            BEGIN { Failed to load overlays to EMS }
-              WriteLn;
-              CASE OvrResult OF
-              { OvrError       : WriteLn('Overlay manager error');
-                OvrNotFound    : WriteLn('Overlay file not found'); }
-                OvrNoMemory    : WriteLn('[ERROR] Not enough memory for overlay buffer');
-                OvrIOError     : WriteLn('[ERROR] Overlay file I/O error');
-                OvrNoEMSDriver : WriteLn('[ERROR] EMS driver not installed');
-                OvrNoEMSMemory : WriteLn('[ERROR] Not enough EMS memory');
-              END;
-              OverLayLocation := 0; { Disk }
-            END;
-        END;
-    END;
+  LoadOvrEMS;
 
   Init;
 
