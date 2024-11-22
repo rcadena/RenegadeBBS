@@ -236,6 +236,15 @@ TYPE
   ConferenceKeyType = SET OF '@'..'Z';    {  }
   CompArrayType = ARRAY[0..1] OF Integer; {  }
 
+  {* Populated by parsing the command line parameters *}
+  CommandLineParamsRec = RECORD
+    FileBBS: Boolean;
+    SortFiles: Boolean;
+    PackBases: Boolean;
+    LocalIOOnly: Boolean;
+    MakeQWKFor: Integer;
+  END;
+
 CONST
   MCIBuffer: MCIBufferPtr = NIL;          { NIL }
 (*DieLater: Boolean = FALSE;              { IF TRUE, Renegade locks up ??? } *)
@@ -302,8 +311,8 @@ CONST
   LastCommandGood: Boolean = FALSE;       { Was last menu command valid? }
   LastCommandOvr: Boolean = FALSE;        { ??? override Pause? (NO Pause?) if TRUE lastcommandgood=FALSE}
   { Startup parameters }
-  LocalIOOnly: Boolean = FALSE;           { Are we in local I/O mode? }
-  MakeQWKFor: Integer = 0;                { Are we making a QWK packet only? }
+  {LocalIOOnly: Boolean = FALSE;}           { Are we in local I/O mode? }
+  {MakeQWKFor: Integer = 0;}                { Are we making a QWK packet only? }
   UpQWKFor: Integer = 0;                  { Are we uploading a QWK packet only? }
   PackBasesOnly: Boolean = FALSE;         { Are we packing message bases only? }
   PackUsersOnly: Boolean = FALSE;         { Are we packing users only? -- LeeW: Added }
@@ -339,11 +348,20 @@ CONST
   ExtEventTime: Word = 0;                 { Number of minutes before external event }
   IsInvisible: Boolean = FALSE;           { Run IN invisible Mode? }
   SaveNAvail: Boolean = FALSE;            {  }
-  
+
   LastWFCX: Byte = 1;                     {  }
   LastWFCY: Byte = 1;                     {  }
-  
+
   ANSIDetected: Boolean = FALSE;          {  }
+
+  {* parsed command line params *}
+  Args: CommandLineParamsRec = (
+    FileBBS: FALSE;
+    SortFiles: FALSE;
+    PackBases: FALSE;
+    LocalIOOnly: FALSE;
+    MakeQWKFor: 0
+  );
 
 VAR
   Wind: WindowRec; { LeeW: Moved from MyIO }
@@ -2071,7 +2089,7 @@ BEGIN
 
   Com_Install;
 
-  IF (NOT LocalIOOnly) AND NOT (LockedPort IN Liner.MFlags) THEN
+  IF (NOT Args.LocalIOOnly) AND NOT (LockedPort IN Liner.MFlags) THEN
     Com_Set_Speed(ComPortSpeed);
 
   Update_Screen;
@@ -4105,7 +4123,7 @@ END;
 
 FUNCTION CInKey: Char;
 BEGIN
-  IF (NOT LocalIOOnly) AND (NOT Com_IsRecv_Empty) THEN
+  IF (NOT Args.LocalIOOnly) AND (NOT Com_IsRecv_Empty) THEN
     CInKey := Com_Recv
   ELSE
     CInKey := #0;
@@ -4166,7 +4184,7 @@ VAR
   TryNum: Integer;
   SaveTimer: LongInt;
 BEGIN
-  IF (NOT LocalIOOnly) THEN
+  IF (NOT Args.LocalIOOnly) THEN
     BEGIN
       IF (ShowIt) AND (InWFCMenu) AND (NOT BlankMenuNow) THEN {LeeW: Added InWFCMenu}
         BEGIN
@@ -4360,7 +4378,7 @@ BEGIN
     IF (S[Index] = '%') THEN
     BEGIN
       CASE UpCase(S[Index + 1]) OF
-        'A' : Add := AOnOff(LocalIOOnly,'0',IntToStr(ActualSpeed));
+        'A' : Add := AOnOff(Args.LocalIOOnly,'0',IntToStr(ActualSpeed));
         'B' : Add := IntToStr(ComPortSpeed);
         'C' : Add := Liner.Address;
         'D' : Add := FunctionalMCI(Protocol.DLFList,'','');

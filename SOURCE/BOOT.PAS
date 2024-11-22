@@ -302,7 +302,7 @@ BEGIN { INITP1 }
   Close(LineFile);
 
   IF (Liner.Comport = 0) THEN
-    LocalIOOnly := TRUE;
+    Args.LocalIOOnly := TRUE;
 
 {tempdirs was here}
 
@@ -1032,7 +1032,7 @@ BEGIN
   DirectVideo := NOT General.UseBIOS;
   IF (General.NetworkMode) AND (ThisNode = 0) THEN
     BEGIN
-      LocalIOOnly := TRUE;
+      Args.LocalIOOnly := TRUE;
       Node := 1;
       WHILE (Node <= MaxNodes) AND (ThisNode = 0) DO
         BEGIN

@@ -361,7 +361,7 @@ in the buffer is discarded.
 
 PROCEDURE Com_Flush_Recv;
 BEGIN
-  IF (NOT LocalIOOnly) THEN
+  IF (NOT Args.LocalIOOnly) THEN
   BEGIN
     ASM
       Cmp InWfcMenu,1
@@ -396,7 +396,7 @@ the output buffer (not transmitted yet) is discarded.
 PROCEDURE Com_Purge_Send;
 BEGIN
   ASM
-    Cmp LocalIOOnly,1
+    Cmp Args.LocalIOOnly,1
     Je @TheEnd
     Mov AH,09h
     Mov DX,FossilPort
@@ -433,7 +433,7 @@ VAR
 BEGIN
   Dummy := 0; (* New *)
   ASM
-    Cmp LocalIOOnly,1
+    Cmp Args.LocalIOOnly,1
     Je @TheEnd
     Mov AH,03h
     Mov DX,FossilPort
@@ -475,7 +475,7 @@ BEGIN
   Com_Recv := #0;
   T_RecvChar := FALSE;
   ASM
-    Cmp LocalIOOnly,1
+    Cmp Args.LocalIOOnly,1
     Je @TheEnd
     Mov AH,0ch
     Mov DX,FossilPort
@@ -521,7 +521,7 @@ VAR
 BEGIN
   Dummy := 0;  (* New *)
   ASM
-    Cmp LocalIOOnly,1
+    Cmp Args.LocalIOOnly,1
     Je @TheEnd
     Mov AH,03h
     Mov DX,FossilPort
@@ -560,7 +560,7 @@ VAR
 BEGIN
   Dummy := 0;  (* New *)
   ASM
-    Cmp LocalIOOnly,1
+    Cmp Args.LocalIOOnly,1
     Je @TheEnd
     Mov AH,03h
     Mov DX,FossilPort
@@ -586,7 +586,7 @@ value of 0000h is returned in AX. If the driver accepts the character
 PROCEDURE Com_Send(C: Char);
 BEGIN
   ASM
-    Cmp LocalIOOnly,1
+    Cmp Args.LocalIOOnly,1
     Je @TheEnd
     Mov AH,0Bh
     Mov DX,FossilPort
@@ -655,7 +655,7 @@ PROCEDURE Com_Set_Speed(Speed: LongInt);
 VAR
   T_AL: Byte;
 BEGIN
-  IF (NOT LocalIOOnly) THEN
+  IF (NOT Args.LocalIOOnly) THEN
   BEGIN
     CASE Speed OF
       300   : T_AL :=  64;
@@ -690,7 +690,7 @@ on the port specified in DX. DTR is NOT affected by this call.
 
 PROCEDURE Com_DeInstall;
 BEGIN
-  IF (NOT LocalIOOnly) THEN
+  IF (NOT Args.LocalIOOnly) THEN
   BEGIN
     ASM
       Mov AH,05h
@@ -715,7 +715,7 @@ PROCEDURE Com_Install;
 
 BEGIN
   FossilPort := (Liner.Comport - 1);
-  IF (LocalIOOnly) THEN
+  IF (Args.LocalIOOnly) THEN
     Exit;
   IF (DriverInstalled <> $1954) THEN
     BEGIN
@@ -744,7 +744,7 @@ END;
 
 PROCEDURE CheckHangup; ASSEMBLER;
 ASM
-  Cmp LocalIOOnly,1
+  Cmp Args.LocalIOOnly,1
   Je @GetOut
   Cmp OutCom,1     (* Should this be 0 *)
   Jne @GetOut
@@ -854,7 +854,7 @@ PROCEDURE DTR(Status: Boolean);
 VAR
   T_AL: Byte;
 BEGIN
-  IF (NOT LocalIOOnly) THEN
+  IF (NOT Args.LocalIOOnly) THEN
   BEGIN
     T_AL := Byte(Status);
     ASM

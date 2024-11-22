@@ -575,7 +575,7 @@ VAR
     C := #0;
     done := FALSE;
     try := 0;
-    IF ((Liner.Init <> '') AND (AnswerBaud = 0) AND (NOT LocalIOOnly)) THEN
+    IF ((Liner.Init <> '') AND (AnswerBaud = 0) AND (NOT Args.LocalIOOnly)) THEN
     BEGIN
       IF (SysOpOn) AND (NOT BlankMenuNow) THEN
       BEGIN
@@ -647,7 +647,7 @@ VAR
 
   PROCEDURE TakeOffHook(ShowIt: Boolean);
   BEGIN
-    IF (NOT LocalIOOnly) THEN
+    IF (NOT Args.LocalIOOnly) THEN
       BEGIN
         DoPhoneOffHook(ShowIt);
         PhoneOffHook := TRUE;
@@ -818,7 +818,7 @@ BEGIN
   LastMinute := (Timer - 61);
   CheckForConnection := FALSE;
 
-  IF (AnswerBaud > 0) AND NOT (LocalIOOnly) THEN
+  IF (AnswerBaud > 0) AND NOT (Args.LocalIOOnly) THEN
   BEGIN
     C := 'A';
     InCom := Com_Carrier;
@@ -981,7 +981,7 @@ BEGIN
                   RedrawWFC := FALSE;
                 END;
 
-          'A' : IF (NOT LocalIOOnly) THEN
+          'A' : IF (NOT Args.LocalIOOnly) THEN
                   CheckForConnection := TRUE
                 ELSE
                   RedrawWFC := FALSE;
@@ -1195,7 +1195,7 @@ BEGIN
         BlankMenuNow := FALSE;
         WFCDraw;
       END;
-      IF (NOT PhoneOffHook) AND (NOT LocalIOOnly) AND (CheckForConnection) THEN
+      IF (NOT PhoneOffHook) AND (NOT Args.LocalIOOnly) AND (CheckForConnection) THEN
       BEGIN
         GetConnection;
         CheckForConnection := FALSE;

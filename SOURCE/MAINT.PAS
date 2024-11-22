@@ -255,7 +255,7 @@ BEGIN
 
   DailyMaint;
 
-  IF (ComPortSpeed > 0) AND (NOT LocalIOOnly) THEN
+  IF (ComPortSpeed > 0) AND (NOT Args.LocalIOOnly) THEN
     Inc(TodayCallers);
 
   IF (SLogSeparate IN ThisUser.SFlags) THEN
@@ -707,7 +707,7 @@ BEGIN
       Read(HistoryFile,History);
     END;
   Inc(History.Active,(GetPackDateTime - TimeOn) DIV 60);
-  IF (NOT LocalIOOnly) THEN
+  IF (NOT Args.LocalIOOnly) THEN
     Inc(History.Callers);
   IF (WasNewUser) THEN
     Inc(History.NewUsers);

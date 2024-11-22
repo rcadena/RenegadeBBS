@@ -69,13 +69,6 @@ USES
 {$O SysOp7M  } {$O SysOp8   } {$O SysOp9   } {$O SysOp10  } {$O SysOp11   } {$O SysOp12  } {$O TimeBank } {$O TimeFunc }
 {$O Vote     } {$O WFCMenu  }
 
-TYPE
-  CommandLineParamsRec = RECORD
-    FileBBS: Boolean;
-    SortFiles: Boolean;
-    PackBases: Boolean;
-  END;
-
 
 CONST
   NeedToHangUp: Boolean = FALSE;
@@ -165,19 +158,9 @@ BEGIN
 END;
 
 {**
- Set default values for command line args
-**}
-PROCEDURE SetDefaultArgs(var Args: CommandLineParamsRec);
-BEGIN
-  Args.FileBBS   := FALSE;
-  Args.SortFiles := FALSE;
-  Args.PackBases := FALSE;
-END;
-
-{**
 * Read command line params and populate Args
 **}
-PROCEDURE ReadP(var Args: CommandLineParamsRec);
+PROCEDURE ReadP;
 VAR
   d: astr;
   Counter: Integer;
@@ -237,7 +220,7 @@ BEGIN
               END;
         'F' : BEGIN
                 Args.FileBBS := TRUE;
-                LocalIOOnly := TRUE;
+                Args.LocalIOOnly := TRUE;
               END;
         'H' : SockHandle := Copy(ParamStr(Counter),3,255);
         'I' : BEGIN
@@ -252,15 +235,15 @@ BEGIN
                 Telnet := TRUE;
                 HangUpKick := TRUE;
               END;
-        'L' : LocalIOOnly := TRUE;
+        'L' : Args.LocalIOOnly := TRUE;
         'M' : BEGIN
-                MakeQWKFor := StrToInt(Copy(ParamStr(Counter),3,255));
-                LocalIOOnly := TRUE;
+                Args.MakeQWKFor := StrToInt(Copy(ParamStr(Counter),3,255));
+                Args.LocalIOOnly := TRUE;
               END;
         'N' : ThisNode := StrToInt(Copy(ParamStr(Counter),3,255));
         'P' : BEGIN
                 Args.PackBases := TRUE;
-                LocalIOOnly := TRUE;
+                Args.LocalIOOnly := TRUE;
               END;
         'Q' : QuitAfterDone := TRUE;
         'R' : BEGIN
@@ -270,7 +253,7 @@ BEGIN
         'S' : BEGIN
                 Args.SortFiles := TRUE;
                 SortFilesOnly := TRUE; { THIS IS USED ELSEWHERE }
-                LocalIOOnly := TRUE;
+                Args.LocalIOOnly := TRUE;
               END;
         'T' : BEGIN
                 IF (SC(ParamStr(Counter),3) <> 'C') THEN
@@ -279,7 +262,7 @@ BEGIN
               END;
         'U' : BEGIN
                 UpQWKFor := StrToInt(Copy(ParamStr(Counter),3,255));
-                LocalIOOnly := TRUE;
+                Args.LocalIOOnly := TRUE;
               END;
         'X' : ExtEventTime := StrToInt(Copy(ParamStr(Counter),3,255));
       END;
@@ -371,8 +354,6 @@ BEGIN
   END;
 END;
 
-VAR
-  Args: CommandLineParamsRec;
 BEGIN
   ClrScr;
   TextColor(LightGray);
@@ -401,8 +382,7 @@ BEGIN
   InitRGOVR;
   ReadDAT;
 
-  SetDefaultArgs(Args);
-  ReadP(Args); { Read command-line parameters }
+  ReadP; { Read command-line parameters }
 
   LoadOvrEMS;
 
@@ -414,17 +394,17 @@ BEGIN
   IF (ScreenSize > 8000) THEN
     ScreenSize := 8000;
 
-  IF (Args.FileBBS) OR (Args.PackBases) OR (Args.SortFiles) OR (MakeQWKFor > 0) OR (UpQWKFor > 0) THEN
+  IF (Args.FileBBS) OR (Args.PackBases) OR (Args.SortFiles) OR (Args.MakeQWKFor > 0) OR (UpQWKFor > 0) THEN
     BEGIN
       WFCMDefine;
       TempPause := FALSE;
-      IF (MakeQWKFor > 0) THEN
+      IF (Args.MakeQWKFor > 0) THEN
         BEGIN
-          UserNum := MakeQWKFor;
-          LoadURec(ThisUser,MakeQWKFor);
+          UserNum := Args.MakeQWKFor;
+          LoadURec(ThisUser,Args.MakeQWKFor);
           NewFileDate := ThisUser.LastOn;
           Downloadpacket;
-          SaveURec(ThisUser,MakeQWKFor);
+          SaveURec(ThisUser,Args.MakeQWKFor);
         END;
       IF (UpQWKFor > 0) THEN
         BEGIN

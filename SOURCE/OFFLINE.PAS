@@ -264,7 +264,7 @@ BEGIN
     Exit;
   END;
 
-  IF (MakeQWKFor > 0) OR (Exist(TempDir+'QWK\'+General.PacketName+'QWK') AND
+  IF (Args.MakeQWKFor > 0) OR (Exist(TempDir+'QWK\'+General.PacketName+'QWK') AND
       PYNQ('Create a new QWK packet for download? ',0,FALSE)) THEN
     PurgeDir(TempDir+'QWK\',FALSE)
   ELSE
@@ -658,7 +658,7 @@ BEGIN
       Exit;
     END;
 
-    IF (MakeQWKFor = 0) THEN
+    IF (Args.MakeQWKFor = 0) THEN
     BEGIN
       NL;
       IF NOT PYNQ('Proceed to packet compression: ',0,TRUE) THEN
@@ -680,7 +680,7 @@ BEGIN
     IF (NOT Ok) OR (NOT Exist(TempDir+'QWK\'+General.PacketName+'.QWK')) THEN
     BEGIN
       NL;
-      Print('Error archiving QWK packet!');
+      Print('Error archiving QWK packet! ');
       OffLineMail := FALSE;
       ConfSystem := SaveConfSystem;
       IF (SaveConfSystem) THEN
@@ -760,7 +760,7 @@ BEGIN
   ELSE
   BEGIN
     S := General.QWKLocalPath+General.PacketName;
-    IF Exist(S+'.QWK') AND ((MakeQWKFor > 0) OR NOT (PYNQ(^M^J'Replace existing .QWK? ',0,FALSE))) THEN
+    IF Exist(S+'.QWK') AND ((Args.MakeQWKFor > 0) OR NOT (PYNQ(^M^J'Replace existing .QWK? ',0,FALSE))) THEN
       FOR C := 'A' TO 'Z' DO
         IF NOT (Exist(S+'.QW'+C)) THEN
         BEGIN

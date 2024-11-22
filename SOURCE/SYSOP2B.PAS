@@ -164,8 +164,8 @@ BEGIN
                           ComPort := TempB;
                           Com_Install;
                         END;
-                    IF (NOT LocalIOOnly) AND (ComPort=0) THEN
-                      LocalIOOnly := TRUE;
+                    IF (NOT Args.LocalIOOnly) AND (ComPort=0) THEN
+                      Args.LocalIOOnly := TRUE;
                   END;
           'B' : InputString('^2%LFIRQ for %E MCI code: ',IRQ,(SizeOf(IRQ)-1),[InterActiveEdit],Changed);
           'C' : InputString('^2%LFI/O Address for %C MCI code: ',Address,(SizeOf(Address)-1),[InterActiveEdit],Changed);
