@@ -3565,10 +3565,12 @@ FUNCTION VerLine(B: Byte): STRING;
 VAR
  Year, Month, MDay, WDay: Word;
 BEGIN
-  GetDate(Year,Month,MDay,WDay);
+  GetDate(Year, Month, MDay, WDay);
   CASE B OF
     1 : VerLine := '^0Renegade Bulletin Board System, Version ^1'+General.Version;
     2 : VerLine := '^0Copyright (c) 1991-'+IntToStr(Year)+' The Renegade Development Team';
+    3 : VerLine := 'ReneGato ^..^ BBS Software, v'+General.Version;
+    4 : VerLine := '^0A fork of Renegade v1.35'
   END;
 END;
 

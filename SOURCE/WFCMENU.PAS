@@ -430,7 +430,8 @@ BEGIN
 
           TextAttr := 31;
           WriteXY(3,1,PadRightStr(TimeStr,8));
-          WriteXY(23,1,'Renegade Bulletin Board System  v'+Build);
+{          WriteXY(23,1,'Renegade Bulletin Board System  v'+Build);}
+          WriteXY(23,1, VerLine(3));
           WriteXY(68,1,DateStr);
 
           Assign(HistoryFile,General.DataPath+'HISTORY.DAT');
